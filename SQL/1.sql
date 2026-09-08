@@ -54,7 +54,7 @@ having count(distinct extract(month from o.order_date)) = 12;
 select p.product_id, p.product_name
 from product p
 left join orders_items oi on oi.product_id = p.product_id
-where oi.order_item_id = NULL;
+where oi.order_item_id IS NULL;
 
 -- Calculate each customer's running total spend over time, ordered by order date (window function).
 
@@ -117,5 +117,17 @@ order by month;
 
 -- List products with an average rating below 3 but more than 5 reviews.
 
+select p.product_id, p.product_name, avg(r.rating) as overall_rating, count(*) as review_count
+from products p
+join reviews r on r.product_id = p.product_id
+group by p.product_id, p.product_name
+having avg(r.rating) < 3 and count(*) > 5;
 
 -- Find pairs of products frequently bought together in the same order (self-join on order_items), ordered by frequency.
+
+select a.product_id as product_a, b.product_id as product_b, count(*) as times_brought_together
+from orders a
+join orders b on b.order_id = a.order_id
+and a.product_id < b.product_id
+group by a.product_id, b.product_id
+order by times_brought_together desc
